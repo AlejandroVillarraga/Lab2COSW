@@ -12,21 +12,16 @@ import java.util.List;
 public class TodoServiceImpl implements TodoService {
 
 
-    private List<Todo> todos = new ArrayList<>();
-
-    @Autowired
-    public TodoServiceImpl()
-    {
-    }
+    List<Todo> todosList = new ArrayList<>();
 
     @Override
     public List<Todo> getTodoList() {
-        return todos;
+        return todosList;
     }
 
     @Override
     public Todo addTodo(Todo todo) {
-        this.todos.add(todo);
+        todosList.add(todo);
         return todo;
     }
 }

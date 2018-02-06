@@ -13,8 +13,10 @@ export class TaskListPageComponent implements OnInit {
 
   }
 
-  ngOnInit() {
-    this.todos = this.todoService.list();
+ ngOnInit() {
+    this.todoService.list().subscribe(todosResponse=>{
+      this.todos = todosResponse;
+    })
   }
 
 }

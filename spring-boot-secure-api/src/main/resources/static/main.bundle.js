@@ -231,6 +231,12 @@ var APIService = (function () {
         this.authService = authService;
         this.http = http;
     }
+    APIService.prototype.get = function (url, options) {
+        return this.http
+            .get(this.config.apiURL + "/" + url, this.getRequestOptions(options))
+            .map(this.extractData)
+            .catch(this.handleError);
+    };
     APIService.prototype.post = function (url, body, options) {
         return this.http
             .post(this.config.apiURL + "/" + url, body, this.getRequestOptions(options))
@@ -686,8 +692,8 @@ module.exports = "<div class=\"container\">\n  <h2>Edit Task</h2>\n  <form [form
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return TaskEditPageComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__services_todo_service__ = __webpack_require__("../../../../../src/app/services/todo.service.ts");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_forms__ = __webpack_require__("../../../forms/@angular/forms.es5.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_router__ = __webpack_require__("../../../router/@angular/router.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_router__ = __webpack_require__("../../../router/@angular/router.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_forms__ = __webpack_require__("../../../forms/@angular/forms.es5.js");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -701,7 +707,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 
 
 
-//import {todoForm} ;
 var TaskEditPageComponent = (function () {
     function TaskEditPageComponent(todoService, formBuilder, router) {
         this.todoService = todoService;
@@ -716,8 +721,12 @@ var TaskEditPageComponent = (function () {
         });
     };
     TaskEditPageComponent.prototype.onSubmit = function () {
-        this.todoService.create(this.todoForm.get('description').value, this.todoForm.get('priority').value, Boolean(this.todoForm.get('completed').value));
-        this.router.navigate(['/tasks']);
+        var _this = this;
+        this.todoService.create(this.todoForm.get('description').value, this.todoForm.get('priority').value, Boolean(this.todoForm.get('completed').value)).subscribe(function (response) {
+            _this.router.navigate(['tasks']);
+        }, function (error) {
+            console.log('Error Posting in: ' + (error && error.message ? error.message : ''));
+        });
     };
     return TaskEditPageComponent;
 }());
@@ -725,9 +734,9 @@ TaskEditPageComponent = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["o" /* Component */])({
         selector: 'app-task-edit-page',
         template: __webpack_require__("../../../../../src/app/pages/task-edit-page/task-edit-page.component.html"),
-        styles: [__webpack_require__("../../../../../src/app/pages/task-edit-page/task-edit-page.component.css")]
+        styles: [__webpack_require__("../../../../../src/app/pages/task-edit-page/task-edit-page.component.css")],
     }),
-    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__services_todo_service__["a" /* TodoService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__services_todo_service__["a" /* TodoService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_2__angular_forms__["a" /* FormBuilder */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__angular_forms__["a" /* FormBuilder */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__angular_router__["a" /* Router */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__angular_router__["a" /* Router */]) === "function" && _c || Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_1__services_todo_service__["a" /* TodoService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_1__services_todo_service__["a" /* TodoService */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_3__angular_forms__["a" /* FormBuilder */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__angular_forms__["a" /* FormBuilder */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_2__angular_router__["a" /* Router */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_2__angular_router__["a" /* Router */]) === "function" && _c || Object])
 ], TaskEditPageComponent);
 
 var _a, _b, _c;
@@ -784,7 +793,10 @@ var TaskListPageComponent = (function () {
         this.todos = [];
     }
     TaskListPageComponent.prototype.ngOnInit = function () {
-        this.todos = this.todoService.list();
+        var _this = this;
+        this.todoService.list().subscribe(function (todosResponse) {
+            _this.todos = todosResponse;
+        });
     };
     return TaskListPageComponent;
 }());
@@ -808,7 +820,21 @@ var _a;
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return TodoService; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/@angular/core.es5.js");
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__models_todo__ = __webpack_require__("../../../../../src/app/models/todo.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__common_api_service__ = __webpack_require__("../../../../../src/app/common/api.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__models_todo__ = __webpack_require__("../../../../../src/app/models/todo.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__angular_http__ = __webpack_require__("../../../http/@angular/http.es5.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__common_auth_service__ = __webpack_require__("../../../../../src/app/common/auth.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__common_config_app_configuration_service__ = __webpack_require__("../../../../../src/app/common/config/app-configuration.service.ts");
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -820,27 +846,36 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
-var TodoService = (function () {
-    function TodoService() {
-        this.todos = [
-            new __WEBPACK_IMPORTED_MODULE_1__models_todo__["a" /* Todo */]('todo 1'),
-            new __WEBPACK_IMPORTED_MODULE_1__models_todo__["a" /* Todo */]('todo 2', 1, true),
-            new __WEBPACK_IMPORTED_MODULE_1__models_todo__["a" /* Todo */]('todo 3')
-        ];
+
+
+
+
+var TodoService = (function (_super) {
+    __extends(TodoService, _super);
+    function TodoService(config, authService, http) {
+        var _this = _super.call(this, config, authService, http) || this;
+        _this.config = config;
+        _this.authService = authService;
+        _this.http = http;
+        _this.resourceUrl = 'api/todo';
+        return _this;
     }
     TodoService.prototype.list = function () {
-        return this.todos;
+        return this.get(this.resourceUrl);
     };
     TodoService.prototype.create = function (description, priority, completed) {
-        this.todos.push(new __WEBPACK_IMPORTED_MODULE_1__models_todo__["a" /* Todo */](description, priority, completed));
+        if (priority === void 0) { priority = 1; }
+        if (completed === void 0) { completed = false; }
+        return this.post(this.resourceUrl, new __WEBPACK_IMPORTED_MODULE_2__models_todo__["a" /* Todo */](description, priority, completed));
     };
     return TodoService;
-}());
+}(__WEBPACK_IMPORTED_MODULE_1__common_api_service__["a" /* APIService */]));
 TodoService = __decorate([
     Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["C" /* Injectable */])(),
-    __metadata("design:paramtypes", [])
+    __metadata("design:paramtypes", [typeof (_a = typeof __WEBPACK_IMPORTED_MODULE_5__common_config_app_configuration_service__["a" /* AppConfiguration */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_5__common_config_app_configuration_service__["a" /* AppConfiguration */]) === "function" && _a || Object, typeof (_b = typeof __WEBPACK_IMPORTED_MODULE_4__common_auth_service__["a" /* AuthService */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_4__common_auth_service__["a" /* AuthService */]) === "function" && _b || Object, typeof (_c = typeof __WEBPACK_IMPORTED_MODULE_3__angular_http__["b" /* Http */] !== "undefined" && __WEBPACK_IMPORTED_MODULE_3__angular_http__["b" /* Http */]) === "function" && _c || Object])
 ], TodoService);
 
+var _a, _b, _c;
 //# sourceMappingURL=todo.service.js.map
 
 /***/ }),
